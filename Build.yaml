@@ -1,0 +1,12 @@
+jar: LiteSoftLocales
+
+
+resources: 
+- $source$
+- src|**.xml
+- LICENSE
+
+dependencies:
+- ../LiteSoftJson
+- ../LiteSoftServerUtils
+- ../LiteSoftCommonFoundation
