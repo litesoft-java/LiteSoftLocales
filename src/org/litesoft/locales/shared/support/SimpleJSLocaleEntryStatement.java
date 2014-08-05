@@ -5,7 +5,7 @@ import org.litesoft.commonfoundation.typeutils.*;
 
 import java.util.*;
 
-public final class SimpleJSLanguageEntryStatement {
+public final class SimpleJSLocaleEntryStatement {
     public static class MalformedException extends RuntimeException {
         public MalformedException( String message ) {
             super( message );
@@ -30,15 +30,15 @@ public final class SimpleJSLanguageEntryStatement {
 
     private final String mKey, mValue;
 
-    public SimpleJSLanguageEntryStatement( String pKey, String pValue ) {
+    public SimpleJSLocaleEntryStatement( String pKey, String pValue ) {
         mKey = validateKey( pKey );
         mValue = validateValue( pValue );
     }
 
-    public static SimpleJSLanguageEntryStatement checkFromAdd( String pLine, Map<String, SimpleJSLanguageEntryStatement> pCurrentEntries ) {
+    public static SimpleJSLocaleEntryStatement checkFromAdd( String pLine, Map<String, SimpleJSLocaleEntryStatement> pCurrentEntries ) {
         if ( null != (pLine = ConstrainTo.significantOrNull( pLine )) ) {
             if ( !pLine.startsWith( "//" ) ) {
-                SimpleJSLanguageEntryStatement zEntry = from( pLine );
+                SimpleJSLocaleEntryStatement zEntry = from( pLine );
                 if ( zEntry == null ) {
                     throw new MalformedException( pLine );
                 }
@@ -51,7 +51,7 @@ public final class SimpleJSLanguageEntryStatement {
         return null;
     }
 
-    public static SimpleJSLanguageEntryStatement from( String pLine ) {
+    public static SimpleJSLocaleEntryStatement from( String pLine ) {
         pLine = ConstrainTo.significantOrNull( pLine, "" );
         if ( pLine.startsWith( LINE_PREFIX ) && pLine.endsWith( VALUE_SUFFIX ) ) {
             int zKeyEnd = pLine.indexOf( KEY_TERMINATOR );
@@ -63,7 +63,7 @@ public final class SimpleJSLanguageEntryStatement {
                 String zPostSep = pLine.substring( zKeyValueSep + KEY_VALUE_SEP.length(), zValuePrefix ).trim();
                 String zValue = pLine.substring( zValuePrefix + VALUE_PREFIX.length(), pLine.length() - VALUE_SUFFIX.length() );
                 if ( (zPreSep.length() == 0) && (zPostSep.length() == 0) ) {
-                    return new SimpleJSLanguageEntryStatement( zKey, zValue );
+                    return new SimpleJSLocaleEntryStatement( zKey, zValue );
                 }
             }
         }
@@ -85,10 +85,10 @@ public final class SimpleJSLanguageEntryStatement {
 
     @Override
     public boolean equals( Object o ) {
-        return (this == o) || ((o instanceof SimpleJSLanguageEntryStatement) && equals( (SimpleJSLanguageEntryStatement) o ));
+        return (this == o) || ((o instanceof SimpleJSLocaleEntryStatement) && equals( (SimpleJSLocaleEntryStatement) o ));
     }
 
-    public boolean equals( SimpleJSLanguageEntryStatement them ) {
+    public boolean equals( SimpleJSLocaleEntryStatement them ) {
         return (this == them) || ((them != null) &&
                                   this.mKey.equals( them.mKey ) &&
                                   this.mValue.equals( them.mValue ));

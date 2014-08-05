@@ -13,7 +13,8 @@ public class DerivedLocaleGraph {
         addToDirectMaps( BASE );
         add( Locale_en_US.INSTANCE, Locale_en_GB.INSTANCE, Locale_en_CA.INSTANCE );
         add( Locale_es_ES.INSTANCE, Locale_es_MX.INSTANCE );
-        add( Locale_fr_FR.INSTANCE, Locale_fr_CA.INSTANCE );
+        add( Locale_fr_FR.INSTANCE, Locale_fr_CA.INSTANCE ); // Locale_fr_CH.INSTANCE );
+        add( Locale_pt_PT.INSTANCE, Locale_pt_BR.INSTANCE );
         add( Locale_zh_CN.INSTANCE, Locale_zh_TW.INSTANCE );
         add( Locale_de_DE.INSTANCE ); // , Locale_de_AT.INSTANCE, Locale_de_CH.INSTANCE );
         add( Locale_it_IT.INSTANCE ); // , Locale_it_CH.INSTANCE );
