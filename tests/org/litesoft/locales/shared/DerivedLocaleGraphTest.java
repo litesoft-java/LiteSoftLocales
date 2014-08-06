@@ -1,6 +1,7 @@
 package org.litesoft.locales.shared;
 
 import org.junit.Test;
+import org.litesoft.commonfoundation.typeutils.*;
 
 import junit.framework.*;
 
@@ -108,7 +109,7 @@ public class DerivedLocaleGraphTest {
     }
 
     private static List<String> toCodes( Locale... pLocales ) {
-        List<String> zCodes = new ArrayList<>( pLocales.length );
+        List<String> zCodes = Lists.newArrayList( pLocales.length );
         for ( Locale zLocale : pLocales ) {
             zCodes.add( AbstractLocale.toCode( zLocale.getLanguage(), zLocale.getCountry() ) );
         }

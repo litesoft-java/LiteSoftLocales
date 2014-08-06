@@ -103,6 +103,9 @@ public final class SimpleJSLocaleEntryStatement {
         if ( pKey.length() == 0 ) {
             throw new IllegalArgumentException( "No Key Specified" );
         }
+        if ( isHistoricFormKey( pKey ) ) {
+            return pKey;
+        }
         int from = 0;
 
         for ( int at; -1 != (at = pKey.indexOf( LocaleFileConstants.COMPOUND_KEY_SEP, from )); from = at + 1 ) {
@@ -110,6 +113,34 @@ public final class SimpleJSLocaleEntryStatement {
         }
         validateKeyPart( pKey, from, pKey.length() );
         return pKey;
+    }
+
+    /**
+     * A Historic Form Key is one that looks like a "static final" constant, e.g. Starts w/ an uppercase Letter and then consists of nothing but uppercase letters, numbers, and underscores.
+     */
+    private static boolean isHistoricFormKey( String pKey ) {
+        if ( !Characters.isUpperCaseAsciiAlpha( pKey.charAt( 0 ) ) ) {
+            return false;
+        }
+        for ( String zPart : Strings.parseChar( pKey, '_' ) ) {
+            if ( !isHistoricFormKeyPart( zPart ) ) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean isHistoricFormKeyPart( String pPart ) {
+        if ( pPart.length() == 0 ) {
+            return false;
+        }
+        for ( int i = 0; i < pPart.length(); i++ ) {
+            char c = pPart.charAt( i );
+            if ( !Characters.isUpperCaseAsciiAlpha( c ) && !Characters.isNumeric( c ) ) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static void validateKeyPart( String pKey, int pFrom, int pUpTo ) {
