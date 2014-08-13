@@ -39,9 +39,6 @@ public final class SimpleJSLocaleEntryStatement {
         if ( null != (pLine = ConstrainTo.significantOrNull( pLine )) ) {
             if ( !pLine.startsWith( "//" ) ) {
                 SimpleJSLocaleEntryStatement zEntry = from( pLine );
-                if ( zEntry == null ) {
-                    throw new MalformedException( pLine );
-                }
                 if ( null != pCurrentEntries.put( zEntry.getKey(), zEntry ) ) {
                     throw new DupEntryException( pLine );
                 }
@@ -52,7 +49,9 @@ public final class SimpleJSLocaleEntryStatement {
     }
 
     public static SimpleJSLocaleEntryStatement from( String pLine ) {
-        pLine = ConstrainTo.significantOrNull( pLine, "" );
+        if ( (pLine = ConstrainTo.significantOrNull( pLine, "//" )).startsWith( "//" ) ) {
+            return null;
+        }
         if ( pLine.startsWith( LINE_PREFIX ) && pLine.endsWith( VALUE_SUFFIX ) ) {
             int zKeyEnd = pLine.indexOf( KEY_TERMINATOR );
             int zKeyValueSep = pLine.indexOf( KEY_VALUE_SEP );
@@ -67,7 +66,7 @@ public final class SimpleJSLocaleEntryStatement {
                 }
             }
         }
-        return null;
+        throw new MalformedException( pLine );
     }
 
     @Override
@@ -99,7 +98,8 @@ public final class SimpleJSLocaleEntryStatement {
         return (31 * mKey.hashCode()) + mValue.hashCode();
     }
 
-    private static String validateKey( String pKey ) {
+    public static String validateKey( String pKey )
+            throws IllegalArgumentException {
         if ( pKey.length() == 0 ) {
             throw new IllegalArgumentException( "No Key Specified" );
         }
@@ -116,7 +116,8 @@ public final class SimpleJSLocaleEntryStatement {
     }
 
     /**
-     * A Historic Form Key is one that looks like a "static final" constant, e.g. Starts w/ an uppercase Letter and then consists of nothing but uppercase letters, numbers, and underscores.
+     * A Historic Form Key is one that looks like a "static final" constant, e.g. Starts w/ an uppercase Letter and then consists of nothing but uppercase
+     * letters, numbers, and underscores.
      */
     private static boolean isHistoricFormKey( String pKey ) {
         if ( !Characters.isUpperCaseAsciiAlpha( pKey.charAt( 0 ) ) ) {

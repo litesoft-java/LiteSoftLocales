@@ -1,0 +1,10 @@
+onejar: KeyUpdater
+main: org.litesoft.locales.server.SimpleJSLocaleKeyUpdater
+
+resources: 
+- LICENSE
+
+dependencies:
+- ../LiteSoftJson
+- ../LiteSoftServerUtils
+- ../LiteSoftCommonFoundation
