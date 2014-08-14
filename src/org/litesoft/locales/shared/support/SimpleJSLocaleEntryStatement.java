@@ -36,20 +36,18 @@ public final class SimpleJSLocaleEntryStatement {
     }
 
     public static SimpleJSLocaleEntryStatement checkFromAdd( String pLine, Map<String, SimpleJSLocaleEntryStatement> pCurrentEntries ) {
-        if ( null != (pLine = ConstrainTo.significantOrNull( pLine )) ) {
-            if ( !pLine.startsWith( "//" ) ) {
-                SimpleJSLocaleEntryStatement zEntry = from( pLine );
-                if ( null != pCurrentEntries.put( zEntry.getKey(), zEntry ) ) {
-                    throw new DupEntryException( pLine );
-                }
-                return zEntry;
+        if ( null != (pLine = significantOrNullLine( pLine )) ) {
+            SimpleJSLocaleEntryStatement zEntry = from( pLine );
+            if ( null != pCurrentEntries.put( zEntry.getKey(), zEntry ) ) {
+                throw new DupEntryException( pLine );
             }
+            return zEntry;
         }
         return null;
     }
 
     public static SimpleJSLocaleEntryStatement from( String pLine ) {
-        if ( (pLine = ConstrainTo.significantOrNull( pLine, "//" )).startsWith( "//" ) ) {
+        if ( null == (pLine = significantOrNullLine( pLine )) ) {
             return null;
         }
         if ( pLine.startsWith( LINE_PREFIX ) && pLine.endsWith( VALUE_SUFFIX ) ) {
@@ -67,6 +65,19 @@ public final class SimpleJSLocaleEntryStatement {
             }
         }
         throw new MalformedException( pLine );
+    }
+
+    public static String significantOrNullLine( String pLine ) {
+        if ( (pLine = ConstrainTo.significantOrNull( pLine, "//" )).startsWith( "//" ) ) {
+            return null;
+        }
+        if ( pLine.startsWith( "/*" ) || pLine.endsWith( "*/" ) ) {
+            String zLine = pLine.toLowerCase();
+            if ( zLine.contains( "todo: " ) && zLine.contains( " translate " ) ) {
+                return null;
+            }
+        }
+        return pLine;
     }
 
     @Override

@@ -1,4 +1,4 @@
-package org.litesoft.locales.server.tables.support;
+package org.litesoft.locales.shared.tables.support;
 
 public class OwnershipChangeException extends RuntimeException {
     public OwnershipChangeException( String message ) {
