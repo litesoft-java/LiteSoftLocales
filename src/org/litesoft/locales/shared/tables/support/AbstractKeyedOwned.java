@@ -8,11 +8,11 @@ import org.litesoft.commonfoundation.indent.*;
  * Implementation of this class should use a synchronization approach of:
  * <p/>
  * "Key" accessors should be synchronized, AND
- * all other variables should variables (except Owner) should be volatile.
+ * all other variables (except Owner) should be volatile.
  * <p/>
- * This will allow for a directed Locking: Owner 1st, then Owned!
+ * This will allow for directed Locking: OwnedManager 1st, Owner's List 2nd, then Owned!
  */
-public abstract class AbstractKeyedOwned<Owner extends AbstractKeyedOwner<?>> implements Indentable {
+public abstract class AbstractKeyedOwned<Owned extends AbstractKeyedOwned<Owned>> implements Indentable {
     /**
      * "Key" access should be synchronized!
      */
@@ -23,27 +23,27 @@ public abstract class AbstractKeyedOwned<Owner extends AbstractKeyedOwner<?>> im
      */
     abstract protected void setRawKey( String pKey );
 
-    private transient Owner mOwner;
+    private transient KeyedOwnedManager<Owned> mOwner;
 
     /**
      * Must be called under a "lock"!
      */
-    boolean claimFor( @NotNull Object pNewOwner ) { // Stupid Generics - Unable to properly identify w/o recursive reference - hence Object!
-        Owner zNewOwner = Cast.it( Confirm.isNotNull( "NewOwner", pNewOwner ) );
-        if ( zNewOwner == mOwner ) {
+    boolean claimFor( @NotNull KeyedOwnedManager<Owned> pNewOwner ) {
+        pNewOwner = Confirm.isNotNull( "NewOwner", pNewOwner );
+        if ( pNewOwner == mOwner ) {
             return false;
         }
         if ( mOwner != null ) {
-            throw new OwnershipChangeException( "Can't change Ownership from '" + reference( mOwner ) + "' to: " + reference( zNewOwner ) );
+            throw new OwnershipChangeException( "Can't change Ownership from '" + reference( mOwner ) + "' to: " + reference( pNewOwner ) );
         }
-        mOwner = zNewOwner;
+        mOwner = pNewOwner;
         return true;
     }
 
     /**
      * Must be called under a "lock"!
      */
-    void releaseClaimFor( @NotNull Object pExistingOwner ) { // Stupid Generics - Unable to properly identify w/o recursive reference - hence Object!
+    void releaseClaimFor( @NotNull KeyedOwnedManager<Owned> pExistingOwner ) { // Stupid Generics - Unable to properly identify w/o recursive reference - hence Object!
         if ( pExistingOwner != mOwner ) {
             throw new DontOwnException( "Can't releaseClaimFor(" + reference( pExistingOwner ) + "), Owned by: " + reference( mOwner ) );
         }

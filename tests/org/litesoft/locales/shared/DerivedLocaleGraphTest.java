@@ -97,7 +97,7 @@ public class DerivedLocaleGraphTest {
         if ( pAdditionalSupported != null ) {
             zSupported.add( pAdditionalSupported );
         }
-        AbstractLocale zSelected = DerivedLocaleGraph.select( zSupported, pLocaleCodesToTest );
+        AbstractLocale zSelected = DerivedLocaleGraph.select( zSupported ).from( pLocaleCodesToTest );
         if ( !pExpected.equals( zSelected ) ) {
             throw new AssertionFailedError( "\n"
                                             + "Expected: " + pExpected + "\n"

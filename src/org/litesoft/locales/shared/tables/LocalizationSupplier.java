@@ -5,7 +5,7 @@ import org.litesoft.commonfoundation.indent.*;
 import org.litesoft.commonfoundation.typeutils.*;
 import org.litesoft.locales.shared.tables.support.*;
 
-public final class LocalizationSupplier extends AbstractKeyedOwned<LocalizationSuppliers> {
+public final class LocalizationSupplier extends AbstractKeyedOwned<LocalizationSupplier> {
     @Override
     protected synchronized String getRawKey() {
         return name;

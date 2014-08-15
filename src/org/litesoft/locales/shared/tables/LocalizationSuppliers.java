@@ -1,21 +1,23 @@
 package org.litesoft.locales.shared.tables;
 
+import org.litesoft.commonfoundation.annotations.*;
 import org.litesoft.commonfoundation.base.*;
+import org.litesoft.commonfoundation.indent.*;
 import org.litesoft.commonfoundation.typeutils.*;
 import org.litesoft.locales.shared.tables.support.*;
 
 import java.util.*;
 
 public class LocalizationSuppliers extends AbstractKeyedOwner<LocalizationSupplier> {
-    private List<LocalizationSupplier> suppliers = Lists.newArrayList();
+    private final List<LocalizationSupplier> suppliers = Lists.newArrayList(); // Note: "final" Replaced by GSON!
 
     public LocalizationSuppliers() {
-        super( "Suppliers" );
-    }
-
-    @Override
-    protected List<LocalizationSupplier> getOwned() {
-        return suppliers;
+        mManager = new KeyedOwnedManager<LocalizationSupplier>( "Suppliers" ) {
+            @Override
+            protected List<LocalizationSupplier> getOwnedList() {
+                return suppliers;
+            }
+        };
     }
 
     public synchronized LocalizationSupplier[] getSuppliers() {
@@ -45,5 +47,10 @@ public class LocalizationSuppliers extends AbstractKeyedOwner<LocalizationSuppli
 
     private static double toDoubtFactor( int pPercentage ) {
         return ((double) (100 - pPercentage)) / 100.0;
+    }
+
+    @Override
+    public void appendTo( @NotNull IndentableWriter pWriter ) {
+        mManager.appendTo( pWriter );
     }
 }

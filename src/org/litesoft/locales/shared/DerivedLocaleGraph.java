@@ -1,5 +1,8 @@
 package org.litesoft.locales.shared;
 
+import org.litesoft.commonfoundation.iterators.*;
+import org.litesoft.commonfoundation.typeutils.*;
+
 import java.util.*;
 
 @SuppressWarnings("Convert2Diamond")
@@ -22,32 +25,8 @@ public class DerivedLocaleGraph {
         add( Locale_ko_KR.INSTANCE );
     }
 
-    public static AbstractLocale select( Set<AbstractLocale> pSupported, List<String> pOrderedCodes ) {
-        AbstractLocale zBest = BASE;
-        if ( pOrderedCodes != null ) {
-            for ( String zCode : pOrderedCodes ) {
-                AbstractLocale zCandidate = candidateForFrom( zCode, pSupported );
-                if ( zCandidate.mDepth > zBest.mDepth ) {
-                    zBest = zCandidate;
-                }
-            }
-        }
-        return zBest;
-    }
-
-    private static AbstractLocale candidateForFrom( String pCode, Set<AbstractLocale> pSupported ) {
-        AbstractLocale zLocale = LOCALE_BY_CODE.get( pCode );
-        if ( null == zLocale ) {
-            if ( null == (zLocale = DEFAULT_LOCALE_BY_LANGUAGE.get( AbstractLocale.languageFrom( pCode ) )) ) {
-                return BASE;
-            }
-        }
-        while ( !pSupported.contains( zLocale ) ) {
-            if ( null == (zLocale = DERIVED_FROM_LOCALE_BY_LOCALE.get( zLocale )) ) {
-                return BASE;
-            }
-        }
-        return zLocale;
+    public static DerivedLocaleGraph select( Set<AbstractLocale> pSupported ) {
+        return new DerivedLocaleGraph( pSupported );
     }
 
     public static void add( AbstractLocale pBaseOrDerivedFrom, AbstractLocale... pDerived ) {
@@ -81,6 +60,45 @@ public class DerivedLocaleGraph {
         return true; // Added
     }
 
-    private DerivedLocaleGraph() {
+    private DerivedLocaleGraph( Set<AbstractLocale> pSupported ) {
+        mSupported = pSupported;
+    }
+
+    private final Set<AbstractLocale> mSupported;
+
+    public AbstractLocale from( String... pOrderedCodes ) {
+        return from( new ArrayIterator<String>( pOrderedCodes ) );
+    }
+
+    public AbstractLocale from( List<String> pOrderedCodes ) {
+        return from( Lists.deNullImmutable( pOrderedCodes ).iterator() );
+    }
+
+    public AbstractLocale from( Iterator<String> pOrderedCodes ) {
+        AbstractLocale zBest = BASE;
+        if ( pOrderedCodes != null ) {
+            while ( pOrderedCodes.hasNext() ) {
+                AbstractLocale zCandidate = candidateForFrom( pOrderedCodes.next() );
+                if ( zCandidate.mDepth > zBest.mDepth ) {
+                    zBest = zCandidate;
+                }
+            }
+        }
+        return zBest;
+    }
+
+    private AbstractLocale candidateForFrom( String pCode ) {
+        AbstractLocale zLocale = LOCALE_BY_CODE.get( pCode );
+        if ( null == zLocale ) {
+            if ( null == (zLocale = DEFAULT_LOCALE_BY_LANGUAGE.get( AbstractLocale.languageFrom( pCode ) )) ) {
+                return BASE;
+            }
+        }
+        while ( !mSupported.contains( zLocale ) ) {
+            if ( null == (zLocale = DERIVED_FROM_LOCALE_BY_LOCALE.get( zLocale )) ) {
+                return BASE;
+            }
+        }
+        return zLocale;
     }
 }
