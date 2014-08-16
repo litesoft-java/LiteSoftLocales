@@ -3,6 +3,8 @@ package org.litesoft.locales.shared;
 import org.litesoft.commonfoundation.iterators.*;
 import org.litesoft.commonfoundation.typeutils.*;
 
+import java8.util.function.*;
+
 import java.util.*;
 
 @SuppressWarnings("Convert2Diamond")
@@ -24,9 +26,16 @@ public class DerivedLocaleGraph {
         add( Locale_ja_JP.INSTANCE );
         add( Locale_ko_KR.INSTANCE );
     }
+    public static final Supplier<DerivedLocaleGraph> SUPPLIER = new Supplier<DerivedLocaleGraph>() {
+        @Override
+        public DerivedLocaleGraph get() {
+            return sInstance;
+        }
+    };
+    private static DerivedLocaleGraph sInstance;
 
     public static DerivedLocaleGraph select( Set<AbstractLocale> pSupported ) {
-        return new DerivedLocaleGraph( pSupported );
+        return sInstance = new DerivedLocaleGraph( pSupported );
     }
 
     public static void add( AbstractLocale pBaseOrDerivedFrom, AbstractLocale... pDerived ) {

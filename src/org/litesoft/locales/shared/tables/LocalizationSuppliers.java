@@ -6,9 +6,18 @@ import org.litesoft.commonfoundation.indent.*;
 import org.litesoft.commonfoundation.typeutils.*;
 import org.litesoft.locales.shared.tables.support.*;
 
+import java8.util.function.*;
+
 import java.util.*;
 
 public class LocalizationSuppliers extends AbstractKeyedOwner<LocalizationSupplier> {
+    public static final Supplier<LocalizationSuppliers> SUPPLIER = new Supplier<LocalizationSuppliers>() {
+        @Override
+        public LocalizationSuppliers get() {
+            return sInstance;
+        }
+    };
+    private static LocalizationSuppliers sInstance;
     private final List<LocalizationSupplier> suppliers = Lists.newArrayList(); // Note: "final" Replaced by GSON!
 
     public LocalizationSuppliers() {
@@ -18,6 +27,7 @@ public class LocalizationSuppliers extends AbstractKeyedOwner<LocalizationSuppli
                 return suppliers;
             }
         };
+        sInstance = this;
     }
 
     public synchronized LocalizationSupplier[] getSuppliers() {

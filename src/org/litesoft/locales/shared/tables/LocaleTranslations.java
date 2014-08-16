@@ -12,6 +12,7 @@ import java.util.*;
 public class LocaleTranslations extends AbstractKeyedOwner<LocaleTranslation> {
     private String locale;
     private final List<LocaleTranslation> translations = Lists.newArrayList();
+    private static DerivedLocaleGraph sLocaleValidator;
 
     public LocaleTranslations() {
         mManager = new KeyedOwnedManager<LocaleTranslation>( "Translations" ) {
@@ -24,24 +25,50 @@ public class LocaleTranslations extends AbstractKeyedOwner<LocaleTranslation> {
 
     public LocaleTranslations( @NotNull String pLocale, @NotNull DerivedLocaleGraph pGraph ) {
         this();
-        if ( !setLocaleUsing( pLocale, pGraph ) ) {
+        if ( pGraph != null ) {
+            sLocaleValidator = pGraph;
+        }
+        if ( !setLocale( pLocale ) ) {
             throw new IllegalArgumentException( "Unknown / Unsupported Locale: " + pLocale );
         }
     }
 
-    public AbstractLocale getLocale( @NotNull DerivedLocaleGraph pGraph ) {
-        return pGraph.from( locale );
+    public LocaleTranslations( @NotNull String pLocale ) {
+        this( pLocale, null );
+    }
+
+    public LocaleTranslations( @NotNull AbstractLocale pLocale ) {
+        this();
+        setLocale( pLocale );
+    }
+
+    public static void setLocaleValidator( DerivedLocaleGraph pLocaleValidator ) {
+        sLocaleValidator = pLocaleValidator;
+    }
+
+    private static DerivedLocaleGraph getLocaleValidator() {
+        DerivedLocaleGraph zLocaleValidator = sLocaleValidator;
+        if ( zLocaleValidator == null ) {
+            zLocaleValidator = DerivedLocaleGraph.SUPPLIER.get();
+        }
+        return Confirm.isNotNull( "LocaleValidator not set", zLocaleValidator );
+    }
+
+    public AbstractLocale getLocale() {
+        return getLocaleValidator().from( locale );
     }
 
     /**
-     * Sets the underlying Local Code using the passed in DerivedLocaleGraph.
+     * Sets the underlying Local Code using 'the' DerivedLocaleGraph.
      * <p/>
      * If the resulting local does not match the one requested then this method return false!
      */
-    public boolean setLocaleUsing( @NotNull String pLocale, @NotNull DerivedLocaleGraph pGraph ) {
-        AbstractLocale zLocale = pGraph.from( pLocale = Confirm.significant( "Locale", pLocale ) );
-        locale = zLocale.getCode();
-        return locale.equals( pLocale );
+    public boolean setLocale( @NotNull String pLocale ) {
+        return setLocale( getLocaleValidator().from( pLocale = Confirm.significant( "Locale", pLocale ) ) ).equals( pLocale );
+    }
+
+    public String setLocale( AbstractLocale pLocale ) {
+        return locale = Confirm.isNotNull( "Locale", pLocale ).getCode();
     }
 
     public synchronized LocaleTranslation[] getTranslations() {
@@ -57,5 +84,19 @@ public class LocaleTranslations extends AbstractKeyedOwner<LocaleTranslation> {
     public void appendTo( @NotNull IndentableWriter pWriter ) {
         pWriter.printLn( "Locale: ", locale );
         mManager.appendTo( pWriter );
+    }
+
+    public void set( String pText_en_US, String pTranslatedText, LocalizationSupplier pSupplier ) {
+        LocaleTranslation zTranslation = get( pText_en_US );
+        if ( zTranslation == null ) { // Happy, but a bit unusual!
+            add( new LocaleTranslation( pText_en_US, new TranslatedSet( pTranslatedText, pSupplier ) ) );
+        } else {
+            zTranslation.set( pTranslatedText, pSupplier );
+        }
+    }
+
+    public String getTranslationFor( String pText_en_US ) {
+        LocaleTranslation zTranslation = get( pText_en_US );
+        return (zTranslation == null) ? pText_en_US : zTranslation.getTranslationFor();
     }
 }

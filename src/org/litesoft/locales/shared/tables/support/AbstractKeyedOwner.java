@@ -31,24 +31,24 @@ public abstract class AbstractKeyedOwner<Owned extends AbstractKeyedOwned<Owned>
         return mManager.get( pKey );
     }
 
-    public void addAll( Owned... pOwneds ) {
-        mManager.addAll( pOwneds );
+    public void addAll( Owned... pOwned ) {
+        mManager.addAll( pOwned );
     }
 
-    public void addAll( List<Owned> pOwneds ) {
-        mManager.addAll( pOwneds );
+    public void addAll( List<Owned> pOwned ) {
+        mManager.addAll( pOwned );
     }
 
     public Owned add( Owned pOwned ) {
         return mManager.add( pOwned );
     }
 
-    public void removeAll( Owned... pOwneds ) {
-        mManager.removeAll( pOwneds );
+    public void removeAll( Owned... pOwned ) {
+        mManager.removeAll( pOwned );
     }
 
-    public void removeAll( List<Owned> pOwneds ) {
-        mManager.removeAll( pOwneds );
+    public void removeAll( List<Owned> pOwned ) {
+        mManager.removeAll( pOwned );
     }
 
     public boolean remove( Owned pOwned ) {

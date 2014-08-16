@@ -30,45 +30,44 @@ public abstract class KeyedOwnedManager<Owned extends AbstractKeyedOwned<Owned>>
     synchronized void reIndex( @NotNull Object pOwned, @NotNull String pWhat, @NotNull String pNewKey ) { // Lock "us" 1st
         Owned zOwned = Cast.it( pOwned ); // Stupid Generics - Unable to properly identify w/o recursive reference - hence Object above!
         Map<String, Owned> zMap = getMap();
-        synchronized ( zOwned ) { // Lock "Owned" 2nd
-            String zRawKey = zOwned.getRawKey();
-            if ( pNewKey.equals( zRawKey ) ) {
-                return; // No Change!
+        synchronized ( getOwnedList() ) { // Lock "Owner's List" 2nd
+            synchronized ( zOwned ) { // Lock "Owned" 3rd
+                String zRawKey = zOwned.getRawKey();
+                if ( pNewKey.equals( zRawKey ) ) {
+                    return; // No Change!
+                }
+                Owned zCurrentNewKeyOwned = zMap.get( pNewKey );
+                if ( zCurrentNewKeyOwned != null ) {
+                    throw new DuplicateKeyException( "Can't change '" + pWhat + "' to '" + pNewKey + "' on (" + zOwned + "), " +
+                                                     "because the '" + pWhat + "' is already used by: " + zCurrentNewKeyOwned );
+                }
+                if ( zOwned != zMap.get( zRawKey ) ) {
+                    throw new DontOwnException( "Can't change '" + pWhat + "' to '" + pNewKey + "', " +
+                                                "because we (" + mWhat + ") don't seem to contain: " + zOwned );
+                }
+                zMap.remove( zRawKey );
+                zMap.put( pNewKey, zOwned );
+                zOwned.setRawKey( pNewKey );
             }
-            Owned zCurrentNewKeyOwned = zMap.get( pNewKey );
-            if ( zCurrentNewKeyOwned != null ) {
-                throw new DuplicateKeyException( "Can't change '" + pWhat + "' to '" + pNewKey + "' on (" + zOwned + "), " +
-                                                 "because the '" + pWhat + "' is already used by: " + zCurrentNewKeyOwned );
-            }
-            if ( zOwned != zMap.get( zRawKey ) ) {
-                throw new DontOwnException( "Can't change '" + pWhat + "' to '" + pNewKey + "', " +
-                                            "because we (" + mWhat + ") don't seem to contain: " + zOwned );
-            }
-            zMap.remove( zRawKey );
-            zMap.put( pNewKey, zOwned );
-            zOwned.setRawKey( pNewKey );
         }
     }
 
     abstract protected List<Owned> getOwnedList();
 
-    protected synchronized Map<String, Owned> getMap() {
+    protected synchronized Map<String, Owned> getMap() { // Lock "us" 1st
         if ( mOwnedByKey == null ) {
             List<Owned> zCurrentOwned = getOwnedList(); // Note: These "should" all be unowned!
-            mOwnedByKey = Maps.newLinkedHashMap( zCurrentOwned.size() );
-            if ( !zCurrentOwned.isEmpty() ) {
-                for ( Owned zOwned : zCurrentOwned ) {
-                    claimAndAddToMap( zOwned, mOwnedByKey );
+            synchronized ( zCurrentOwned ) { // Lock "Owner's List" 2nd
+                mOwnedByKey = Maps.newLinkedHashMap( zCurrentOwned.size() );
+                if ( !zCurrentOwned.isEmpty() ) {
+                    for ( Owned zOwned : zCurrentOwned ) {
+                        claimAndAddToMap( zOwned, mOwnedByKey );
+                    }
                 }
             }
         }
         return mOwnedByKey;
     }
-
-    private synchronized List<Owned> snagOwned() {
-        return Lists.newArrayList( getOwnedList() );
-    }
-
 
     @Override
     public String toString() {
@@ -93,10 +92,12 @@ public abstract class KeyedOwnedManager<Owned extends AbstractKeyedOwned<Owned>>
         pWriter.outdent();
     }
 
-    public synchronized void clear() {
-        List<Owned> zOwneds = snagOwned();
-        for ( Owned zOwned : zOwneds ) {
-            remove( zOwned );
+    public synchronized void clear() { // Lock us 1st
+        List<Owned> zOwneds = getOwnedList();
+        synchronized ( zOwneds ) { // Lock Owned List 2nd
+            for ( Owned zOwned : Lists.newArrayList( zOwneds ) ) {
+                remove( zOwned );
+            }
         }
     }
 
@@ -108,33 +109,36 @@ public abstract class KeyedOwnedManager<Owned extends AbstractKeyedOwned<Owned>>
         return getMap().get( pKey );
     }
 
-    public synchronized void addAll( Owned... pOwneds ) {
-        for ( Owned zOwned : ConstrainTo.notNullImmutableList( pOwneds ) ) {
+    public synchronized void addAll( Owned... pOwned ) {
+        for ( Owned zOwned : ConstrainTo.notNullImmutableList( pOwned ) ) {
             add( zOwned );
         }
     }
 
-    public synchronized void addAll( List<Owned> pOwneds ) {
-        for ( Owned zOwned : ConstrainTo.notNull( pOwneds ) ) {
+    public synchronized void addAll( List<Owned> pOwned ) {
+        for ( Owned zOwned : ConstrainTo.notNull( pOwned ) ) {
             add( zOwned );
         }
     }
 
-    public synchronized Owned add( Owned pOwned ) {
-        if ( claimAndAddToMap( pOwned, getMap() ) ) {
-            getOwnedList().add( pOwned );
+    public synchronized Owned add( Owned pOwned ) { // Lock us 1st!
+        List<Owned> zOwnedList = getOwnedList();
+        synchronized ( zOwnedList ) { // Lock "Owned list" 2nd
+            if ( claimAndAddToMap( pOwned, getMap() ) ) {
+                zOwnedList.add( pOwned );
+            }
         }
         return pOwned;
     }
 
-    public synchronized void removeAll( Owned... pOwneds ) {
-        for ( Owned zOwned : ConstrainTo.notNullImmutableList( pOwneds ) ) {
+    public synchronized void removeAll( Owned... pOwned ) {
+        for ( Owned zOwned : ConstrainTo.notNullImmutableList( pOwned ) ) {
             remove( zOwned );
         }
     }
 
-    public synchronized void removeAll( List<Owned> pOwneds ) {
-        for ( Owned zOwned : ConstrainTo.notNull( pOwneds ) ) {
+    public synchronized void removeAll( List<Owned> pOwned ) {
+        for ( Owned zOwned : ConstrainTo.notNull( pOwned ) ) {
             remove( zOwned );
         }
     }
@@ -144,29 +148,38 @@ public abstract class KeyedOwnedManager<Owned extends AbstractKeyedOwned<Owned>>
             return false;
         }
         Map<String, Owned> zMap = getMap();
-        String zRawKey;
-        synchronized ( pOwned ) { // Lock 2nd
-            zRawKey = pOwned.getRawKey();
-            pOwned.releaseClaimFor( this ); // asserts we Own it!
+        List<Owned> zOwnedList = getOwnedList();
+        synchronized ( zOwnedList ) { // Lock 2nd
+            synchronized ( pOwned ) { // Lock 3nd
+                String zRawKey = pOwned.getRawKey();
+                pOwned.releaseClaimFor( this ); // asserts we Own it!
+                removeFromMap( zMap, zRawKey, pOwned );
+                removeFromList( zOwnedList, pOwned );
+            }
         }
-        Owned zRemoved = zMap.remove( zRawKey );
-        if ( pOwned != zRemoved ) {
-            throw new IllegalStateException( "Owned! (" + pOwned + "), but Map said: " + zRemoved );
-        }
-        List<Owned> zOwned = getOwnedList();
-        int zIndexOf = Lists.identityIndexOfIn( pOwned, zOwned );
-        if ( zIndexOf == -1 ) {
-            throw new IllegalStateException( "Owned! (" + pOwned + "), but Not in List!" );
-        }
-        zOwned.remove( zIndexOf );
         return true;
     }
 
+    private void removeFromMap( Map<String, Owned> pMap, String pRawKey, Owned pOwned ) {
+        Owned zRemoved = pMap.remove( pRawKey );
+        if ( pOwned != zRemoved ) {
+            throw new IllegalStateException( "Owned! (" + pOwned + "), but Map said: " + zRemoved );
+        }
+    }
+
+    private void removeFromList( List<Owned> pOwnedList, Owned pOwned ) {
+        int zIndexOf = Lists.identityIndexOfIn( pOwned, pOwnedList );
+        if ( zIndexOf == -1 ) {
+            throw new IllegalStateException( "Owned! (" + pOwned + "), but Not in List!" );
+        }
+        pOwnedList.remove( zIndexOf );
+    }
+
     /**
-     * Must only be called under a "lock" of this Owner!
+     * Must only be called under the double "lock" of this Owner & the Owned List!
      */
     private boolean claimAndAddToMap( Owned pOwned, Map<String, Owned> pOwnedByKey ) {
-        synchronized ( pOwned ) { // Lock 2nd
+        synchronized ( pOwned ) { // Lock 3rd
             if ( !pOwned.claimFor( this ) ) {
                 return false;
             }

@@ -19,10 +19,12 @@ public final class LocalizationSupplier extends AbstractKeyedOwned<LocalizationS
     private String name;
     private volatile int confidencePercentage;
 
-    @Deprecated LocalizationSupplier() { // reconstitution
+    LocalizationSupplier() {
+        super( "Name" );
     }
 
     public LocalizationSupplier( String pName, int pConfidencePercentage ) {
+        this();
         setName( pName );
         setConfidencePercentage( pConfidencePercentage );
     }
@@ -32,7 +34,7 @@ public final class LocalizationSupplier extends AbstractKeyedOwned<LocalizationS
     }
 
     public void setName( String pName ) {
-        updateKey( "Name", pName );
+        updateKey( pName );
     }
 
     public int getConfidencePercentage() {

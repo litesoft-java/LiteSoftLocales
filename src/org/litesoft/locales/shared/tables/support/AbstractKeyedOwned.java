@@ -3,6 +3,7 @@ package org.litesoft.locales.shared.tables.support;
 import org.litesoft.commonfoundation.annotations.*;
 import org.litesoft.commonfoundation.base.*;
 import org.litesoft.commonfoundation.indent.*;
+import org.litesoft.locales.shared.tables.*;
 
 /**
  * Implementation of this class should use a synchronization approach of:
@@ -23,7 +24,12 @@ public abstract class AbstractKeyedOwned<Owned extends AbstractKeyedOwned<Owned>
      */
     abstract protected void setRawKey( String pKey );
 
+    private transient String mKeyName;
     private transient KeyedOwnedManager<Owned> mOwner;
+
+    protected AbstractKeyedOwned( String pKeyName ) {
+        mKeyName = pKeyName;
+    }
 
     /**
      * Must be called under a "lock"!
@@ -54,13 +60,17 @@ public abstract class AbstractKeyedOwned<Owned extends AbstractKeyedOwned<Owned>
         return (pObject == null) ? "null" : (ClassName.simple( pObject ) + ":" + System.identityHashCode( pObject ));
     }
 
-    protected void updateKey( @NotNull String pWhat, String pNewKey ) {
-        pNewKey = Confirm.significant( pWhat, pNewKey );
+    protected void updateKey( String pNewKey ) {
+        pNewKey = validateNewKey( "New " + mKeyName, pNewKey );
         if ( mOwner == null ) {
             setRawKey( pNewKey );
         } else {
-            mOwner.reIndex( this, pWhat, pNewKey );
+            mOwner.reIndex( this, mKeyName, pNewKey );
         }
+    }
+
+    protected String validateNewKey( String pWhat, String pKey ) {
+        return Confirm.significant( pWhat, pKey );
     }
 
     @Override

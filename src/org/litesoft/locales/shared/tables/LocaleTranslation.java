@@ -1,6 +1,7 @@
 package org.litesoft.locales.shared.tables;
 
 import org.litesoft.commonfoundation.annotations.*;
+import org.litesoft.commonfoundation.base.*;
 import org.litesoft.commonfoundation.indent.*;
 import org.litesoft.commonfoundation.typeutils.*;
 import org.litesoft.locales.shared.tables.support.*;
@@ -27,10 +28,12 @@ public final class LocaleTranslation extends AbstractKeyedOwned<LocaleTranslatio
         }
     };
 
-    @Deprecated LocaleTranslation() { // reconstitution
+    LocaleTranslation() {
+        super( "en_US text" );
     }
 
     public LocaleTranslation( String pEnUStext, TranslatedSet... pTranslatedSets ) {
+        this();
         setEnUStext( pEnUStext );
         addAll( pTranslatedSets );
     }
@@ -40,7 +43,7 @@ public final class LocaleTranslation extends AbstractKeyedOwned<LocaleTranslatio
     }
 
     public void setEnUStext( String pEnUStext ) {
-        updateKey( "Name", pEnUStext );
+        updateKey( pEnUStext );
     }
 
     public synchronized TranslatedSet[] getTranslatedSets() {
@@ -86,5 +89,66 @@ public final class LocaleTranslation extends AbstractKeyedOwned<LocaleTranslatio
     @Override
     protected void appendNonKeys( @NotNull IndentableWriter pWriter ) {
         mManager.appendTo( pWriter );
+    }
+
+    @Override
+    protected String validateNewKey( String pWhat, String pKey ) {
+        return Confirm.isNotNull( pWhat, pKey );
+    }
+
+    public void set( String pTranslatedText, LocalizationSupplier pSupplier ) {
+        TranslatedSet zSetByText = locateSet( pTranslatedText );
+        TranslatedSet zSetBySupplier = locateSet( pSupplier );
+        if ( zSetBySupplier == null ) {
+            addSupplier( pSupplier, zSetByText, pTranslatedText );
+        } else if ( zSetBySupplier != zSetByText ) {
+            removeSupplier( pSupplier, zSetBySupplier );
+            addSupplier( pSupplier, zSetByText, pTranslatedText );
+        }
+    }
+
+    private void addSupplier( LocalizationSupplier pSupplier, TranslatedSet pSetByText, String pTranslatedText ) {
+        if ( pSetByText == null ) {
+            add( new TranslatedSet( pTranslatedText, pSupplier ) );
+        } else {
+            pSetByText.add( pSupplier );
+        }
+    }
+
+    private void removeSupplier( LocalizationSupplier pSupplier, TranslatedSet pSetBySupplier ) {
+        pSetBySupplier.remove( pSupplier );
+        if ( !pSetBySupplier.hasSuppliers() ) {
+            remove( pSetBySupplier );
+        }
+    }
+
+    private TranslatedSet locateSet( LocalizationSupplier pSupplier ) {
+        for ( TranslatedSet zSet : translatedSets ) {
+            if ( zSet.hasSupplier( pSupplier ) ) {
+                return zSet;
+            }
+        }
+        return null;
+    }
+
+    private TranslatedSet locateSet( String pTranslatedText ) {
+        return mManager.get( pTranslatedText );
+    }
+
+    public String getTranslationFor() {
+        TranslatedSet zBestSet = findBestSet();
+        return (zBestSet == null) ? enUStext : zBestSet.getTranslationFor( enUStext );
+    }
+
+    private TranslatedSet findBestSet() {
+        if ( translatedSets.isEmpty() ) {
+            return null;
+        }
+        Iterator<TranslatedSet> zIt = translatedSets.iterator();
+        TranslatedSet zBestSet = zIt.next();
+        while ( zIt.hasNext() ) {
+            zBestSet = zBestSet.orBetter( zIt.next() );
+        }
+        return zBestSet;
     }
 }
