@@ -135,20 +135,126 @@ public final class LocaleTranslation extends AbstractKeyedOwned<LocaleTranslatio
         return mManager.get( pTranslatedText );
     }
 
-    public String getTranslationFor() {
-        TranslatedSet zBestSet = findBestSet();
+    public String getTranslationFor( LocaleIssues pIssueCollector ) {
+        TranslatedSet zBestSet = findBestSet( pIssueCollector );
         return (zBestSet == null) ? enUStext : zBestSet.getTranslationFor( enUStext );
     }
 
-    private TranslatedSet findBestSet() {
+    private TranslatedSet findBestSet( LocaleIssues pIssueCollector ) {
         if ( translatedSets.isEmpty() ) {
+            pIssueCollector.noTranslationSet( enUStext );
             return null;
         }
         Iterator<TranslatedSet> zIt = translatedSets.iterator();
-        TranslatedSet zBestSet = zIt.next();
+        TranslatedSet zBestSet = evaluateForSimilarityToEnglish( zIt.next(), pIssueCollector );
         while ( zIt.hasNext() ) {
-            zBestSet = zBestSet.orBetter( zIt.next() );
+            zBestSet = zBestSet.orBetter( evaluateForSimilarityToEnglish( zIt.next(), pIssueCollector ) );
         }
         return zBestSet;
+    }
+
+    private TranslatedSet evaluateForSimilarityToEnglish( TranslatedSet pSet, LocaleIssues pIssueCollector ) {
+        String zTranslatedText = pSet.getTranslatedText();
+        if ( Currently.significant( zTranslatedText ) ) {
+            if ( isTooSimilar( enUStext, zTranslatedText ) ) {
+                pIssueCollector.tooSimilarToEnglish( enUStext, zTranslatedText );
+            }
+        }
+        return pSet;
+    }
+
+    protected boolean isTooSimilar( String pEnUStext, String pTranslatedText ) {
+        return Similarizer.INSTANCE.similarize( pEnUStext ).equals( Similarizer.INSTANCE.similarize( pTranslatedText ) );
+    }
+
+    private static final class Similarizer {
+        private static final String SPECIAL_PUNC = "()[]{}<>";
+        public static final char REG_PUNC = '|';
+        public static final Similarizer INSTANCE = new Similarizer();
+
+        enum Mode {
+            AlphaNumeric() {
+                @Override
+                public boolean isMember( char c ) {
+                    return Character.isAlphabetic( c ) || (('0' <= c) && (c <= '9'));
+                }
+
+                @Override
+                protected char transform( char c ) {
+                    return Character.toLowerCase( c );
+                }
+            },
+            SpecialPunc() {
+                @Override
+                public boolean isMember( char c ) {
+                    return (-1 != SPECIAL_PUNC.indexOf( c ));
+                }
+            },
+            RegPunc() {
+                @Override
+                public boolean isMember( char c ) {
+                    return true;
+                }
+
+                @Override
+                protected void addNthMember( char c, StringBuilder sb ) {
+                    // Only Add the First
+                }
+
+                @Override
+                protected char transform( char c ) {
+                    return REG_PUNC;
+                }
+            },
+            Start() {
+                @Override
+                public boolean isMember( char c ) {
+                    return false;
+                }
+            };
+
+            abstract public boolean isMember( char c );
+
+            private static Mode findMode( char c ) {
+                for ( Mode zMode : values() ) {
+                    if ( zMode.isMember( c ) ) {
+                        return zMode;
+                    }
+                }
+                throw new IllegalStateException( "No Mode accepted: " + c );
+            }
+
+            public Mode add( char c, StringBuilder sb ) {
+                Mode zMode = findMode( c );
+                if ( zMode == this ) {
+                    addNthMember( c, sb );
+                } else {
+                    zMode.add1stMember( c, sb );
+                }
+                return zMode;
+            }
+
+            private void add1stMember( char c, StringBuilder sb ) {
+                sb.append( transform( c ) );
+            }
+
+            protected void addNthMember( char c, StringBuilder sb ) {
+                sb.append( transform( c ) );
+            }
+
+            protected char transform( char c ) {
+                return c;
+            }
+        }
+
+        public String similarize( String pText ) {
+            StringBuilder sb = new StringBuilder();
+            pText = " " + pText + " ";
+            Mode zMode = Mode.Start;
+            for ( int i = 0; i < pText.length(); i++ ) {
+                zMode = zMode.add( pText.charAt( i ), sb );
+            }
+            return sb.toString();
+        }
     }
 }

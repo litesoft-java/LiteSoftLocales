@@ -3,29 +3,8 @@ package org.litesoft.locales.shared.support;
 import org.litesoft.commonfoundation.base.*;
 import org.litesoft.commonfoundation.typeutils.*;
 
-import java.util.*;
-
-public final class SimpleJSLocaleEntryStatement {
-    public static class MalformedException extends RuntimeException {
-        public MalformedException( String message ) {
-            super( message );
-        }
-    }
-
-    public static class DupEntryException extends RuntimeException {
-        public DupEntryException( String message ) {
-            super( message );
-        }
-    }
-
-    private static final String LINE_PREFIX = "LNG['";
-    private static final String KEY_TERMINATOR = "']";
-
-    private static final String KEY_VALUE_SEP = "=";
-
-    private static final String VALUE_PREFIX = "\"";
-    private static final String VALUE_SUFFIX = "\";";
-
+public final class SimpleJSLocaleEntryStatement implements KeyValueStrings,
+                                                           SimpleJSLocaleEntryConstants {
     private static final String[] OK_TWO_CHAR_ESCAPE_SEQUENCES = {"\\n", "\\\\", "\\\""};
 
     private final String mKey, mValue;
@@ -35,60 +14,17 @@ public final class SimpleJSLocaleEntryStatement {
         mValue = validateValue( pValue );
     }
 
-    public static SimpleJSLocaleEntryStatement checkFromAdd( String pLine, Map<String, SimpleJSLocaleEntryStatement> pCurrentEntries ) {
-        if ( null != (pLine = significantOrNullLine( pLine )) ) {
-            SimpleJSLocaleEntryStatement zEntry = from( pLine );
-            if ( null != pCurrentEntries.put( zEntry.getKey(), zEntry ) ) {
-                throw new DupEntryException( pLine );
-            }
-            return zEntry;
-        }
-        return null;
-    }
-
-    public static SimpleJSLocaleEntryStatement from( String pLine ) {
-        if ( null == (pLine = significantOrNullLine( pLine )) ) {
-            return null;
-        }
-        if ( pLine.startsWith( LINE_PREFIX ) && pLine.endsWith( VALUE_SUFFIX ) ) {
-            int zKeyEnd = pLine.indexOf( KEY_TERMINATOR );
-            int zKeyValueSep = pLine.indexOf( KEY_VALUE_SEP );
-            int zValuePrefix = pLine.indexOf( VALUE_PREFIX );
-            if ( (zKeyEnd != -1) && (zKeyEnd < zKeyValueSep) && (zKeyValueSep < zValuePrefix) ) {
-                String zKey = pLine.substring( LINE_PREFIX.length(), zKeyEnd );
-                String zPreSep = pLine.substring( zKeyEnd + KEY_TERMINATOR.length(), zKeyValueSep ).trim();
-                String zPostSep = pLine.substring( zKeyValueSep + KEY_VALUE_SEP.length(), zValuePrefix ).trim();
-                String zValue = pLine.substring( zValuePrefix + VALUE_PREFIX.length(), pLine.length() - VALUE_SUFFIX.length() );
-                if ( (zPreSep.length() == 0) && (zPostSep.length() == 0) ) {
-                    return new SimpleJSLocaleEntryStatement( zKey, zValue );
-                }
-            }
-        }
-        throw new MalformedException( pLine );
-    }
-
-    public static String significantOrNullLine( String pLine ) {
-        if ( (pLine = ConstrainTo.significantOrNull( pLine, "//" )).startsWith( "//" ) ) {
-            return null;
-        }
-        if ( pLine.startsWith( "/*" ) || pLine.endsWith( "*/" ) ) {
-            String zLine = pLine.toLowerCase();
-            if ( zLine.contains( "todo: " ) && zLine.contains( " translate " ) ) {
-                return null;
-            }
-        }
-        return pLine;
-    }
-
     @Override
     public String toString() {
         return LINE_PREFIX + mKey + KEY_TERMINATOR + " " + KEY_VALUE_SEP + " " + VALUE_PREFIX + mValue + VALUE_SUFFIX;
     }
 
+    @Override
     public String getKey() {
         return mKey;
     }
 
+    @Override
     public String getValue() {
         return mValue;
     }

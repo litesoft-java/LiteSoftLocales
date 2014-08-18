@@ -59,7 +59,7 @@ public class SimpleJSLocaleKeyUpdater {
 
     private String processLine( String pLine ) {
         try {
-            SimpleJSLocaleEntryStatement zEntry = SimpleJSLocaleEntryStatement.from( pLine );
+            SimpleJSLocaleEntryStatement zEntry = SimpleJSLocaleEntryStatementLineParser.INSTANCE.parse( pLine );
             return (zEntry == null) ? pLine :
                    new SimpleJSLocaleEntryStatement( morphKey( zEntry.getKey() ), morphValue( zEntry.getValue() ) ).toString();
         }

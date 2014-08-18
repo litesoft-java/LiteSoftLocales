@@ -95,8 +95,12 @@ public class LocaleTranslations extends AbstractKeyedOwner<LocaleTranslation> {
         }
     }
 
-    public String getTranslationFor( String pText_en_US ) {
+    public String getTranslationFor( String pText_en_US, LocaleIssues pIssueCollector ) {
         LocaleTranslation zTranslation = get( pText_en_US );
-        return (zTranslation == null) ? pText_en_US : zTranslation.getTranslationFor();
+        if ( zTranslation != null ) {
+            return zTranslation.getTranslationFor( pIssueCollector );
+        }
+        pIssueCollector.noTranslation( pText_en_US );
+        return pText_en_US;
     }
 }
