@@ -13,19 +13,16 @@ import org.litesoft.server.file.*;
 import java.io.*;
 import java.util.*;
 
-public class LocaleGenerator {
+public class LocaleGenerator extends LocaleProcessor {
 
-    private final Console mConsole;
     private final KeyValueStringsLineParser mKeyValueStringsLineParser;
-    private final LocalePaths mLocalePaths;
-    private final FilePersister mDB_Persister;
     private final String[] mLines_en_US;
 
     public LocaleGenerator( Console pConsole, KeyValueStringsLineParser pKeyValueStringsLineParser, LocalePaths pLocalePaths ) {
-        LocaleFileUtils zLocaleFileUtils = new LocaleFileUtils( mConsole = pConsole, mKeyValueStringsLineParser = pKeyValueStringsLineParser );
-        mDB_Persister = new FilePersister( (mLocalePaths = pLocalePaths).toDataBases() );
+        super( pConsole, pKeyValueStringsLineParser, pLocalePaths );
+        mKeyValueStringsLineParser = pKeyValueStringsLineParser;
         Map<String, KeyValueStrings> zCollector = Maps.newHashMap();
-        mLines_en_US = zLocaleFileUtils.from( mLocalePaths.master() ).loadAndValidate_en_US( zCollector );
+        mLines_en_US = mLocaleFileUtils.from( mLocalePaths.master() ).loadAndValidate_en_US( zCollector );
     }
 
     public void process() {
@@ -39,7 +36,7 @@ public class LocaleGenerator {
     private class Generator {
         private final LocaleTranslations mTranslations;
         private final String mOutputPath;
-        private final LocaleIssues mIssueCollector = new LocaleIssues( new ConsoleIndentableWriter( "    ", mConsole ) );
+        private final LocaleIssues mIssueCollector = new LocaleIssues( new ConsoleIndentableWriter( mConsole ) );
 
         public Generator( LocaleTranslations pTranslations ) {
             mOutputPath = mLocalePaths.master().locale( (mTranslations = pTranslations).getLocale() );

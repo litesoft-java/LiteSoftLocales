@@ -57,9 +57,6 @@ public abstract class AbstractKeyedOwner<Owned extends AbstractKeyedOwned<Owned>
 
     @Override
     public String toString() {
-        StringIndentableWriter zWriter = new StringIndentableWriter( "    " );
-        appendTo( zWriter );
-        zWriter.close();
-        return zWriter.toString();
+        return StringIndentableWriter.formatWith( this );
     }
 }

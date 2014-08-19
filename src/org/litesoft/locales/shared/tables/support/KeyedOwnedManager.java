@@ -71,25 +71,24 @@ public abstract class KeyedOwnedManager<Owned extends AbstractKeyedOwned<Owned>>
 
     @Override
     public String toString() {
-        StringIndentableWriter zWriter = new StringIndentableWriter( "    " );
-        appendTo( zWriter );
-        zWriter.close();
-        return zWriter.toString();
+        return StringIndentableWriter.formatWith( this );
     }
 
     @Override
-    public void appendTo( @NotNull IndentableWriter pWriter ) {
+    public IndentableWriter appendTo( @NotNull IndentableWriter pWriter ) {
         List<Owned> zAllOwned = getOwnedList();
         int zSize = zAllOwned.size();
         if ( zSize == 0 ) {
             pWriter.print( "No ", mWhat );
+        } else {
+            pWriter.printLn( mWhat, " (", zSize, "):" );
+            pWriter.indent();
+            for ( Owned zOwned : zAllOwned ) {
+                zOwned.appendTo( pWriter );
+            }
+            pWriter.outdent();
         }
-        pWriter.printLn( mWhat, " (", zSize, "):" );
-        pWriter.indent();
-        for ( Owned zOwned : zAllOwned ) {
-            zOwned.appendTo( pWriter );
-        }
-        pWriter.outdent();
+        return pWriter;
     }
 
     public synchronized void clear() { // Lock us 1st

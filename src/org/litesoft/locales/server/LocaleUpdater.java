@@ -11,16 +11,10 @@ import org.litesoft.server.file.*;
 
 import java.util.*;
 
-public class LocaleUpdater {
-
-    protected final Console mConsole;
-    protected final LocaleFileUtils mLocaleFileUtils;
-    protected final LocalePaths mLocalePaths;
-    protected FilePersister mDB_Persister;
+public class LocaleUpdater extends LocaleProcessor {
 
     public LocaleUpdater( Console pConsole, KeyValueStringsLineParser pKeyValueStringsLineParser, LocalePaths pLocalePaths ) {
-        mLocaleFileUtils = new LocaleFileUtils( mConsole = pConsole, pKeyValueStringsLineParser );
-        mDB_Persister = new FilePersister( (mLocalePaths = pLocalePaths).toDataBases() );
+        super(pConsole, pKeyValueStringsLineParser, pLocalePaths);
     }
 
     public void process() {

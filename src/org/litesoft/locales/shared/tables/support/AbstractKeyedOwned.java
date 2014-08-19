@@ -3,7 +3,6 @@ package org.litesoft.locales.shared.tables.support;
 import org.litesoft.commonfoundation.annotations.*;
 import org.litesoft.commonfoundation.base.*;
 import org.litesoft.commonfoundation.indent.*;
-import org.litesoft.locales.shared.tables.*;
 
 /**
  * Implementation of this class should use a synchronization approach of:
@@ -75,16 +74,14 @@ public abstract class AbstractKeyedOwned<Owned extends AbstractKeyedOwned<Owned>
 
     @Override
     public String toString() {
-        StringIndentableWriter zWriter = new StringIndentableWriter( "    " );
-        appendTo( zWriter );
-        zWriter.close();
-        return zWriter.toString();
+        return StringIndentableWriter.formatWith( this );
     }
 
     @Override
-    public void appendTo( @NotNull IndentableWriter pWriter ) {
+    public IndentableWriter appendTo( @NotNull IndentableWriter pWriter ) {
         pWriter.print( getRawKey() );
         appendNonKeys( pWriter );
+        return pWriter;
     }
 
     protected abstract void appendNonKeys( @NotNull IndentableWriter pWriter );

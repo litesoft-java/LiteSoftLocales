@@ -81,9 +81,10 @@ public class LocaleTranslations extends AbstractKeyedOwner<LocaleTranslation> {
     }
 
     @Override
-    public void appendTo( @NotNull IndentableWriter pWriter ) {
+    public IndentableWriter appendTo( @NotNull IndentableWriter pWriter ) {
         pWriter.printLn( "Locale: ", locale );
         mManager.appendTo( pWriter );
+        return pWriter;
     }
 
     public void set( String pText_en_US, String pTranslatedText, LocalizationSupplier pSupplier ) {

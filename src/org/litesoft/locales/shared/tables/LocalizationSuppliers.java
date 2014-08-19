@@ -60,7 +60,8 @@ public class LocalizationSuppliers extends AbstractKeyedOwner<LocalizationSuppli
     }
 
     @Override
-    public void appendTo( @NotNull IndentableWriter pWriter ) {
+    public IndentableWriter appendTo( @NotNull IndentableWriter pWriter ) {
         mManager.appendTo( pWriter );
+        return pWriter;
     }
 }
