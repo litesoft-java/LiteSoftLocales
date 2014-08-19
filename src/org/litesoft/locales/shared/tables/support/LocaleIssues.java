@@ -10,9 +10,11 @@ public class LocaleIssues {
     private final List<String> mNoTranslations = Lists.newArrayList();
     private final List<String> mTooSimilar = Lists.newArrayList();
     private final IndentableWriter mWriter;
+    private final boolean mSuppressTooSimilar;
 
-    public LocaleIssues( IndentableWriter pWriter ) {
+    public LocaleIssues( IndentableWriter pWriter, boolean pSuppressTooSimilar ) {
         mWriter = pWriter;
+        mSuppressTooSimilar = pSuppressTooSimilar;
     }
 
     public void noTranslationSet( String pText_en_us ) {
@@ -24,8 +26,10 @@ public class LocaleIssues {
     }
 
     public void tooSimilarToEnglish( String pText_en_us, String pTextLocale ) {
-        mTooSimilar.add( "--- " + '"' + pText_en_us + '"' );
-        mTooSimilar.add( "--> " + '"' + pTextLocale + '"' );
+        if ( !mSuppressTooSimilar ) {
+            mTooSimilar.add( "--- " + '"' + pText_en_us + '"' );
+            mTooSimilar.add( "--> " + '"' + pTextLocale + '"' );
+        }
     }
 
     public void report() {

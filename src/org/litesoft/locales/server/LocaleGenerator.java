@@ -17,12 +17,18 @@ public class LocaleGenerator extends LocaleProcessor {
 
     private final KeyValueStringsLineParser mKeyValueStringsLineParser;
     private final String[] mLines_en_US;
+    private boolean mSuppressTooSimilar;
 
     public LocaleGenerator( Console pConsole, KeyValueStringsLineParser pKeyValueStringsLineParser, LocalePaths pLocalePaths ) {
         super( pConsole, pKeyValueStringsLineParser, pLocalePaths );
         mKeyValueStringsLineParser = pKeyValueStringsLineParser;
         Map<String, KeyValueStrings> zCollector = Maps.newHashMap();
         mLines_en_US = mLocaleFileUtils.from( mLocalePaths.master() ).loadAndValidate_en_US( zCollector );
+    }
+
+    public LocaleGenerator suppressTooSimilar() {
+        mSuppressTooSimilar = true;
+        return this;
     }
 
     public void process() {
@@ -36,10 +42,11 @@ public class LocaleGenerator extends LocaleProcessor {
     private class Generator {
         private final LocaleTranslations mTranslations;
         private final String mOutputPath;
-        private final LocaleIssues mIssueCollector = new LocaleIssues( new ConsoleIndentableWriter( mConsole ) );
+        private final LocaleIssues mIssueCollector;
 
         public Generator( LocaleTranslations pTranslations ) {
             mOutputPath = mLocalePaths.master().locale( (mTranslations = pTranslations).getLocale() );
+            mIssueCollector = new LocaleIssues( new ConsoleIndentableWriter( mConsole ), mSuppressTooSimilar );
         }
 
         public void generate( AbstractLocale pLocale ) {
