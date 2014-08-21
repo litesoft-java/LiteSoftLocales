@@ -7,14 +7,13 @@ import org.litesoft.locales.server.tables.*;
 import org.litesoft.locales.shared.*;
 import org.litesoft.locales.shared.tables.*;
 import org.litesoft.server.dynamicload.*;
-import org.litesoft.server.file.*;
 
 import java.util.*;
 
 public class LocaleUpdater extends LocaleProcessor {
 
     public LocaleUpdater( Console pConsole, KeyValueStringsLineParser pKeyValueStringsLineParser, LocalePaths pLocalePaths ) {
-        super(pConsole, pKeyValueStringsLineParser, pLocalePaths);
+        super( pConsole, pKeyValueStringsLineParser, pLocalePaths );
     }
 
     public void process() {
